@@ -1,7 +1,8 @@
 databases:
   - name: shape-architects-crm-db
     region: singapore
-    plan: starter
+    plan: basic-256mb
+    diskSizeGB: 1
     databaseName: shape_architects_crm
     user: shape_crm_user
 
