@@ -1,0 +1,28 @@
+{
+  "name": "shape-architects-crm",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/server",
+    "apps/web",
+    "apps/landing"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspaces",
+    "dev": "concurrently \"npm run dev -w apps/server\" \"npm run dev -w apps/web\" \"npm run dev -w apps/landing\"",
+    "web:dev": "npm run dev -w apps/web",
+    "web:build": "npm run build -w apps/web",
+    "web:preview": "npm run preview -w apps/web",
+    "landing:dev": "npm run dev -w apps/landing",
+    "landing:build": "npm run build -w apps/landing",
+    "landing:preview": "npm run preview -w apps/landing",
+    "build": "npm run build -w apps/server && npm run build -w apps/web && npm run build -w apps/landing",
+    "prisma:generate": "npm run prisma:generate -w apps/server",
+    "prisma:migrate": "npm run prisma:migrate -w apps/server",
+    "prisma:seed": "npm run prisma:seed -w apps/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "sql.js": "^1.14.1"
+  }
+}

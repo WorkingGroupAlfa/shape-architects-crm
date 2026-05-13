@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project - Shape Architects</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="src/styles/main.css" />
+  </head>
+  <body class="project-page">
+    <header class="project-header">
+      <nav class="nav nav-left" aria-label="Primary">
+        <a href="index.html#about">About</a>
+        <a href="index.html#team">Team</a>
+        <a href="index.html#portfolio">Portfolio</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <a class="brand project-brand" href="index.html" aria-label="Shape Architects home">
+        <img src="images/SHAPE+LOGO+VECTOR+-+White+(1).webp" alt="Shape Architects" />
+      </a>
+      <nav class="nav social" aria-label="Social links">
+        <a href="mailto:hello@shapearchitects.com.au" target="_blank" aria-label="Email">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+        </a>
+        <a href="https://www.facebook.com/shapearchitects" target="_blank" aria-label="Facebook">f</a>
+        <a href="https://www.instagram.com/shape_architects_au/" target="_blank" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M16 8h.01"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/company/shape-architects-au" target="_blank" aria-label="LinkedIn">in</a>
+      </nav>
+      <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" data-menu-toggle>
+        <span></span><span></span>
+      </button>
+    </header>
+
+    <div class="mobile-menu" data-mobile-menu>
+      <a href="index.html#about">About</a>
+      <a href="index.html#team">Team</a>
+      <a href="index.html#portfolio">Portfolio</a>
+      <a href="index.html#services">Services</a>
+      <a href="index.html#contact">Contact</a>
+      <div class="mobile-menu-social">
+        <a href="mailto:hello@shapearchitects.com.au" target="_blank" aria-label="Email">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+        </a>
+        <a href="https://www.facebook.com/shapearchitects" target="_blank" aria-label="Facebook">f</a>
+        <a href="https://www.instagram.com/shape_architects_au/" target="_blank" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M16 8h.01"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/company/shape-architects-au" target="_blank" aria-label="LinkedIn">in</a>
+      </div>
+    </div>
+
+    <main>
+      <section class="project-detail-hero">
+        <div class="project-copy">
+          <h1 data-project-title></h1>
+          <div data-project-description></div>
+        </div>
+        <img data-project-main-image alt="" />
+      </section>
+
+      <section class="project-info-section">
+        <div class="project-info-title">
+          <h2>Project Info</h2>
+          <a href="index.html#contact">Discuss Your Own Project →</a>
+        </div>
+        <div class="project-info-list" data-project-info></div>
+      </section>
+
+      <section class="project-gallery" data-project-gallery></section>
+
+      <section class="project-outcome">
+        <h2>Outcome</h2>
+        <p data-project-outcome>More to come!</p>
+      </section>
+    </main>
+
+    <footer class="footer section-light">
+      <div class="container footer-grid">
+        <div>
+          <h2>Shape Architects</h2>
+          <p>Shape Architects are proudly South Australian. We create homes built for you. Designed for your life.</p>
+          <div class="logos">
+            <img class="logo-member" src="images/member.webp" alt="Australian Institute of Architects member" />
+            <img class="logo-apbsa" src="images/league1.webp" alt="APBSA" />
+            <img class="logo-aca" src="images/league2.webp" alt="Association of Consulting Architects member practice" />
+          </div>
+          <p class="copyright">Shape Architects © 2026</p>
+        </div>
+        <address>
+          <span>Email</span>
+          <a href="mailto:hello@shapearchitects.com.au">hello@shapearchitects.com.au</a>
+          <span>Address</span>
+          <p>254 Angas Street<br />Adelaide SA 5000</p>
+        </address>
+      </div>
+    </footer>
+
+    <a class="back-top" href="#" aria-label="Back to top" data-back-top>↑</a>
+    <script type="module" src="src/data/site-data.js"></script>
+    <script type="module" src="src/js/project.js"></script>
+  </body>
+</html>

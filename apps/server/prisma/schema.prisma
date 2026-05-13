@@ -1,0 +1,700 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("EMPLOYEE")
+  passwordHash String @default("")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  activities ActivityLog[]
+  projectAccesses ProjectAccess[]
+  projectNotes ProjectNote[]
+  projectChatReads ProjectChatRead[]
+  executors  Executor[]
+  annotatedProjectFiles ProjectFile[] @relation("ProjectFileAnnotatedBy")
+  renderReviews RenderReview[]
+}
+
+model ClientStatus {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  clients     Client[]
+}
+
+model Client {
+  id                 String    @id @default(cuid())
+  clientNumber       String    @unique
+  name               String
+  phone              String?
+  email              String?
+  company            String?
+  abn                String?
+  address            String?
+  leadSource         String?
+  statusId           String
+  createdAt          DateTime  @default(now())
+  lastContactAt      DateTime?
+  isWeeklySubscribed Boolean   @default(false)
+  isMonthlySubscribed Boolean  @default(false)
+  weeklyTemplateId   String?
+  monthlyTemplateId  String?
+  notes              String?
+  perplexitySummary  String?
+  perplexityStatus   String?
+  perplexityUpdatedAt DateTime?
+
+  status             ClientStatus @relation(fields: [statusId], references: [id])
+  comments           ClientComment[]
+  contactEmails      ClientContactEmail[]
+  projects           Project[]
+  leads              Lead[]
+  subscriptions      EmailCampaignSubscription[]
+  sentEmails         EmailSendLog[]
+  emailThreads       EmailThread[]
+  emailMessages      EmailMessage[]
+  emailSendJobs      EmailSendJob[]
+  campaignRuns       EmailCampaignRun[]
+  unassignedEmails   UnassignedEmail[]
+  activities         ActivityLog[]
+  tasks              CalendarTask[]
+  files              ClientFile[]
+  invoiceFiles       InvoiceFile[]
+  renderReviews      RenderReview[]
+  researchMessages   ClientResearchMessage[]
+}
+
+model ClientContactEmail {
+  id              String   @id @default(cuid())
+  clientId        String
+  email           String
+  emailNormalized String
+  label           String?
+  isPrimary       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  lastUsedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  emailThreads    EmailThread[]
+
+  @@unique([clientId, emailNormalized])
+  @@index([clientId, isActive, isPrimary])
+}
+
+model ClientResearchMessage {
+  id        String   @id @default(cuid())
+  clientId  String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, createdAt])
+}
+
+model ClientFile {
+  id           String   @id @default(cuid())
+  clientId     String
+  originalName String
+  storedName   String
+  mimeType     String
+  fileSize     Int
+  kind         String   @default("GENERAL")
+  sourceHtml   String?
+  createdAt    DateTime @default(now())
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model ClientComment {
+  id        String   @id @default(cuid())
+  clientId  String
+  content   String
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  projectNumber String   @unique
+  invoiceNumber String?  @unique
+  title         String
+  clientId      String
+  executorId    String?
+  description   String?
+  status        String
+  priority      String   @default("MEDIUM")
+  startDate     DateTime?
+  endDate       DateTime?
+  deadline      DateTime?
+  notes         String?
+  income        Float    @default(0)
+  expense       Float    @default(0)
+  taxAmount     Float    @default(0)
+  profit        Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client        Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  executor      Executor? @relation(fields: [executorId], references: [id], onDelete: SetNull)
+  notesItems    ProjectNote[]
+  files         ProjectFile[]
+  invoiceFiles  InvoiceFile[]
+  contractors   Contractor[]
+  tasks         CalendarTask[]
+  payments      Payment[]
+  finances      FinanceEntry[]
+  emailMessages EmailMessage[]
+  accesses     ProjectAccess[]
+  chatReadStates ProjectChatRead[]
+  renderReviews RenderReview[]
+}
+
+model RenderReview {
+  id           String   @id @default(cuid())
+  title        String
+  token        String   @unique
+  passwordHash String
+  status       String   @default("DRAFT")
+  projectId    String?
+  clientId     String?
+  createdById  String?
+  expiresAt    DateTime?
+  closedAt     DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client       Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  createdBy    User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  images       RenderReviewImage[]
+  guests       RenderReviewGuest[]
+  annotations  RenderReviewAnnotation[]
+  canvasImages RenderReviewCanvasImage[]
+
+  @@index([status, createdAt])
+  @@index([projectId, createdAt])
+  @@index([clientId, createdAt])
+}
+
+model RenderReviewImage {
+  id           String   @id @default(cuid())
+  reviewId     String
+  originalName String
+  storedName   String
+  mimeType     String
+  fileSize     Int
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  review       RenderReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  annotations  RenderReviewAnnotation[]
+  canvasImages RenderReviewCanvasImage[]
+
+  @@index([reviewId, sortOrder])
+}
+
+model RenderReviewGuest {
+  id          String   @id @default(cuid())
+  reviewId    String
+  name        String
+  createdAt   DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  review      RenderReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  annotations RenderReviewAnnotation[]
+  canvasImages RenderReviewCanvasImage[]
+
+  @@index([reviewId, createdAt])
+}
+
+model RenderReviewAnnotation {
+  id           String   @id @default(cuid())
+  reviewId     String
+  imageId      String
+  guestId      String?
+  parentId     String?
+  type         String
+  number       Int?
+  text         String?
+  geometryJson String
+  color        String   @default("#20a8ff")
+  strokeWidth  Float    @default(3)
+  resolved     Boolean  @default(false)
+  deletedAt    DateTime?
+  deletedByGuestId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  review       RenderReview      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  image        RenderReviewImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  guest        RenderReviewGuest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  parent       RenderReviewAnnotation?  @relation("AnnotationReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      RenderReviewAnnotation[] @relation("AnnotationReplies")
+
+  @@index([reviewId, imageId, createdAt])
+  @@index([guestId, createdAt])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+model RenderReviewCanvasImage {
+  id           String   @id @default(cuid())
+  reviewId     String
+  imageId      String
+  guestId      String?
+  originalName String
+  storedName   String
+  mimeType     String
+  fileSize     Int
+  x            Float
+  y            Float
+  width        Float
+  deletedAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  review       RenderReview      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  image        RenderReviewImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  guest        RenderReviewGuest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@index([reviewId, imageId, createdAt])
+  @@index([guestId, createdAt])
+  @@index([deletedAt])
+}
+
+model ProjectChatRead {
+  id         String   @id @default(cuid())
+  projectId  String
+  userId     String
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId, updatedAt])
+}
+
+model InvoiceFile {
+  id            String   @id @default(cuid())
+  projectId     String
+  clientId      String
+  invoiceNumber String?
+  originalName  String
+  storedName    String
+  mimeType      String
+  fileSize      Int
+  createdAt     DateTime @default(now())
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([clientId, createdAt])
+}
+
+model ProjectAccess {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId, createdAt])
+}
+
+model Executor {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+  notes     String?
+  userId    String?  @unique
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projects  Project[]
+}
+
+model ProjectNote {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String?
+  content   String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model ProjectFile {
+  id           String   @id @default(cuid())
+  projectId    String
+  originalName String
+  storedName   String
+  mimeType     String
+  fileSize     Int
+  isAnnotated  Boolean  @default(false)
+  isInvoice    Boolean  @default(false)
+  annotationSourceId String?
+  annotatedById String?
+  createdAt    DateTime @default(now())
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  annotationSource ProjectFile? @relation("ProjectFileAnnotation", fields: [annotationSourceId], references: [id], onDelete: SetNull)
+  annotationVersions ProjectFile[] @relation("ProjectFileAnnotation")
+  annotatedBy User? @relation("ProjectFileAnnotatedBy", fields: [annotatedById], references: [id], onDelete: SetNull)
+  emailAttachments EmailAttachment[]
+
+  @@index([projectId, createdAt])
+  @@index([annotationSourceId])
+}
+
+model Contractor {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  specialty   String?
+  phone       String?
+  email       String?
+  cost        Float    @default(0)
+  notes       String?
+  createdAt   DateTime @default(now())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model FinanceEntry {
+  id          String   @id @default(cuid())
+  projectId   String?
+  clientId    String?
+  type        String
+  amount      Float
+  taxAmount   Float    @default(0)
+  description String?
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  projectId   String
+  clientId    String?
+  amount      Float
+  dueDate     DateTime
+  paidAt      DateTime?
+  status      String        @default("EXPECTED")
+  description String?
+  createdAt   DateTime      @default(now())
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  projectId     String?
+  clientId      String?
+  invoiceNumber String   @unique
+  totalAmount   Float
+  status        String
+  issuedAt      DateTime @default(now())
+}
+
+model CalendarTask {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  priority    String
+  status      String     @default("TODO")
+  reminderAt  DateTime?
+  projectId   String?
+  clientId    String?
+  notifiedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  notifications Notification[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  taskId     String?
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  task      CalendarTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  body        String
+  createdAt   DateTime @default(now())
+  subscriptions EmailCampaignSubscription[]
+  sentEmails  EmailSendLog[]
+}
+
+model EmailSendLog {
+  id                String   @id @default(cuid())
+  clientId          String
+  templateId        String?
+  toEmail           String
+  subject           String
+  body              String
+  status            String
+  provider          String
+  providerMessageId String?
+  errorMessage      String?
+  createdAt         DateTime @default(now())
+
+  client            Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template          EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+}
+
+model EmailCampaignSubscription {
+  id              String   @id @default(cuid())
+  clientId        String
+  frequency       String
+  templateId      String
+  isActive        Boolean  @default(true)
+  isProcessing    Boolean  @default(false)
+  processingStartedAt DateTime?
+  lastErrorAt     DateTime?
+  lastErrorText   String?
+  sendDayOfWeek   Int?
+  sendDayOfMonth  Int?
+  sendTime        String?
+  timezone        String?
+  threadStrategy  String   @default("new_each_run")
+  lastRunAt       DateTime?
+  nextRunAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template        EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  runs            EmailCampaignRun[]
+
+  @@index([isActive, isProcessing, nextRunAt])
+}
+
+model EmailThread {
+  id               String   @id @default(cuid())
+  clientId         String
+  contactEmailId   String?
+  contactEmail     String?
+  subject          String
+  subjectNormalized String
+  provider         String
+  providerThreadId String?
+  threadType       String   @default("manual")
+  status           String   @default("open")
+  lastMessageAt    DateTime?
+  unreadCount      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  client           Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientContactEmail ClientContactEmail? @relation(fields: [contactEmailId], references: [id], onDelete: SetNull)
+  messages         EmailMessage[]
+  sendJobs         EmailSendJob[]
+  campaignRuns     EmailCampaignRun[]
+  linkedUnassignedEmails UnassignedEmail[]
+
+  @@index([provider, providerThreadId])
+  @@index([clientId, lastMessageAt])
+  @@index([contactEmailId, lastMessageAt])
+}
+
+model EmailMessage {
+  id                String   @id @default(cuid())
+  threadId          String
+  clientId          String
+  projectId         String?
+  invoiceId         String?
+  provider          String
+  providerMessageId String?
+  providerThreadId  String?
+  direction         String
+  messageType       String
+  fromEmail         String
+  toEmail           String
+  cc                String?
+  bcc               String?
+  subject           String
+  bodyHtml          String
+  bodyText          String?
+  bodySnippet       String?
+  inReplyTo         String?
+  referencesHeader  String?   @map("references")
+  isRead            Boolean  @default(false)
+  sentAt            DateTime?
+  receivedAt        DateTime?
+  createdAt         DateTime @default(now())
+
+  thread            EmailThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  project           Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  attachments       EmailAttachment[]
+  campaignRuns      EmailCampaignRun[]
+
+  @@index([threadId])
+  @@unique([provider, providerMessageId])
+}
+
+model EmailAttachment {
+  id                   String   @id @default(cuid())
+  messageId            String?
+  invoiceId            String?
+  projectFileId        String?
+  fileName             String
+  mimeType             String
+  fileSize             Int
+  storagePath          String
+  providerAttachmentId String?
+  createdAt            DateTime @default(now())
+
+  message              EmailMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  projectFile          ProjectFile?  @relation(fields: [projectFileId], references: [id], onDelete: SetNull)
+}
+
+model EmailSendJob {
+  id          String   @id @default(cuid())
+  clientId    String
+  threadId    String?
+  mode        String
+  payloadJson String
+  status      String
+  attempts    Int      @default(0)
+  errorText   String?
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  thread      EmailThread? @relation(fields: [threadId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
+
+model EmailSyncState {
+  id             String   @id @default(cuid())
+  provider       String
+  mailboxEmail   String
+  lastHistoryId  String?
+  lastDeltaToken String?
+  lastSyncAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([provider, mailboxEmail])
+}
+
+model EmailCampaignRun {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  clientId       String
+  threadId       String?
+  messageId      String?
+  status         String
+  errorText      String?
+  triggeredAt    DateTime @default(now())
+  completedAt    DateTime?
+
+  subscription   EmailCampaignSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  client         Client                    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  thread         EmailThread?              @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  message        EmailMessage?             @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([clientId, triggeredAt])
+}
+
+model UnassignedEmail {
+  id               String   @id @default(cuid())
+  provider         String
+  providerMessageId String?
+  providerThreadId String?
+  fromEmail        String
+  toEmail          String
+  cc               String?
+  bcc              String?
+  subject          String
+  bodyHtml         String
+  bodyText         String?
+  bodySnippet      String?
+  inReplyTo        String?
+  referencesHeader String?  @map("references")
+  receivedAt       DateTime?
+  payloadJson      String?
+  attachmentsJson  String?
+  status           String   @default("OPEN")
+  reason           String?
+  linkedClientId   String?
+  linkedThreadId   String?
+  resolvedAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  linkedClient     Client?      @relation(fields: [linkedClientId], references: [id], onDelete: SetNull)
+  linkedThread     EmailThread? @relation(fields: [linkedThreadId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, providerMessageId])
+  @@index([status, createdAt])
+}
+
+model Lead {
+  id           String     @id @default(cuid())
+  source       String
+  name         String
+  email        String?
+  phone        String?
+  company      String?
+  message      String?
+  status       String     @default("NEW")
+  clientId     String?
+  createdAt    DateTime   @default(now())
+  client       Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+}
+
+model WebsiteContent {
+  id        String   @id @default("shape-site")
+  data      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  message    String
+  createdAt  DateTime @default(now())
+  userId     String?
+  clientId   String?
+
+  user       User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  client     Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+}

@@ -1,0 +1,41 @@
+import { Router } from 'express';
+import { dashboardRouter } from './modules/dashboard.routes.js';
+import { clientsRouter } from './modules/clients.routes.js';
+import { projectsRouter } from './modules/projects.routes.js';
+import { financesRouter } from './modules/finances.routes.js';
+import { calendarRouter } from './modules/calendar.routes.js';
+import { leadsPublicRouter, leadsRouter } from './modules/leads.routes.js';
+import { templatesRouter } from './modules/templates.routes.js';
+import { notificationsRouter } from './modules/notifications.routes.js';
+import { executorsRouter } from './modules/executors.routes.js';
+import { mailRouter } from './modules/mail.routes.js';
+import { authRouter } from './modules/auth.routes.js';
+import { usersRouter } from './modules/users.routes.js';
+import { monitoringRouter } from './modules/monitoring.routes.js';
+import { techAdminRouter } from './modules/tech-admin.routes.js';
+import { publicReviewsRouter, reviewsRouter } from './modules/reviews.routes.js';
+import { publicWebsiteRouter } from './modules/website.routes.js';
+import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
+
+export const router = Router();
+
+router.use('/auth', authRouter);
+router.use('/leads', leadsPublicRouter);
+router.use('/public/reviews', publicReviewsRouter);
+router.use('/public', publicWebsiteRouter);
+router.use(requireAuth);
+router.use('/monitoring', monitoringRouter);
+
+router.use('/dashboard', requireRole('ADMIN'), dashboardRouter);
+router.use('/clients', requireRole('ADMIN'), clientsRouter);
+router.use('/projects', projectsRouter);
+router.use('/finances', requireRole('ADMIN'), financesRouter);
+router.use('/calendar', requireRole('ADMIN'), calendarRouter);
+router.use('/leads', requireRole('ADMIN'), leadsRouter);
+router.use('/templates', requireRole('ADMIN'), templatesRouter);
+router.use('/notifications', requireRole('ADMIN'), notificationsRouter);
+router.use('/executors', requireRole('ADMIN'), executorsRouter);
+router.use('/mail', requireRole('ADMIN'), mailRouter);
+router.use('/reviews', requireRole('ADMIN'), reviewsRouter);
+router.use('/users', usersRouter);
+router.use('/tech-admin', requireRole('TECH_ADMIN'), techAdminRouter);

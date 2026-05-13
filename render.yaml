@@ -1,0 +1,99 @@
+databases:
+  - name: shape-architects-crm-db
+    region: singapore
+    plan: starter
+    databaseName: shape_architects_crm
+    user: shape_crm_user
+
+services:
+  - type: web
+    name: shape-architects-crm-api
+    runtime: node
+    region: singapore
+    plan: starter
+    rootDir: apps/server
+    buildCommand: npm install --include=dev && npm run prisma:generate && npm run build
+    startCommand: npm run prisma:migrate && npm run prisma:bootstrap && npm run start
+    healthCheckPath: /health
+    disk:
+      name: shape-uploads
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shape-architects-crm-db
+          property: connectionString
+      - key: STORAGE_DIR
+        value: /var/data/uploads
+      - key: CORS_ORIGINS
+        value: "https://shape-architects-crm-web.onrender.com,https://shape-architects-landing.onrender.com"
+      - key: WEBSITE_ADMIN_PASSWORD
+        value: shape-admin-2026
+      - key: SEED_ADMIN_EMAIL
+        value: admin@shape.local
+      - key: SEED_ADMIN_PASSWORD
+        value: shape-admin-2026
+      - key: SEED_EMPLOYEE_ONE_EMAIL
+        value: studio.one@shape.local
+      - key: SEED_EMPLOYEE_ONE_PASSWORD
+        value: shape-studio-1
+      - key: SEED_EMPLOYEE_TWO_EMAIL
+        value: studio.two@shape.local
+      - key: SEED_EMPLOYEE_TWO_PASSWORD
+        value: shape-studio-2
+      - key: MAIL_SYNC_ENABLED
+        sync: false
+      - key: MAIL_SYNC_INTERVAL_MS
+        sync: false
+      - key: MAIL_CAMPAIGN_SCHEDULER_ENABLED
+        sync: false
+      - key: MAIL_CAMPAIGN_INTERVAL_MS
+        sync: false
+      - key: MAIL_PROVIDER
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false
+      - key: AUTOMATION_SYNC_ENABLED
+        sync: false
+  - type: web
+    name: shape-architects-crm-web
+    runtime: static
+    region: singapore
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://shape-architects-crm-api.onrender.com/api
+  - type: web
+    name: shape-architects-landing
+    runtime: static
+    region: singapore
+    rootDir: apps/landing
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /admin
+        destination: /admin/index.html
+      - type: rewrite
+        source: /admin/*
+        destination: /admin/index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://shape-architects-crm-api.onrender.com/api
