@@ -69,7 +69,6 @@ services:
   - type: web
     name: shape-architects-crm-web
     runtime: static
-    region: singapore
     rootDir: apps/web
     buildCommand: npm install && npm run build
     staticPublishPath: dist
@@ -83,7 +82,6 @@ services:
   - type: web
     name: shape-architects-landing
     runtime: static
-    region: singapore
     rootDir: apps/landing
     buildCommand: npm install && npm run build
     staticPublishPath: dist
